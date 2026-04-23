@@ -1,0 +1,36 @@
+{
+  "tabs": [
+    {
+      "id": "mode",
+      "label": "Mode",
+      "fields": [
+        { "key": "sandbox", "label": "Sandbox (test) mode", "component": "checkbox" }
+      ]
+    },
+    {
+      "id": "test-credentials",
+      "label": "Sandbox credentials",
+      "fields": [
+        { "key": "test_merchant_id", "label": "Merchant ID", "component": "input", "inputType": "text" },
+        { "key": "test_secret_key", "label": "Secret key", "component": "input", "inputType": "password" },
+        { "key": "test_api_url", "label": "API base URL", "component": "input", "inputType": "text" }
+      ]
+    },
+    {
+      "id": "live-credentials",
+      "label": "Live credentials",
+      "fields": [
+        { "key": "live_merchant_id", "label": "Merchant ID", "component": "input", "inputType": "text" },
+        { "key": "live_secret_key", "label": "Secret key", "component": "input", "inputType": "password" },
+        { "key": "live_api_url", "label": "API base URL", "component": "input", "inputType": "text" }
+      ]
+    },
+    {
+      "id": "options",
+      "label": "Options",
+      "fields": [
+        { "key": "qr_expiry_minutes", "label": "QR expiry (minutes)", "component": "input", "inputType": "number" }
+      ]
+    }
+  ]
+}
