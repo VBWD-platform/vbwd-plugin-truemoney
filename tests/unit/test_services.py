@@ -34,7 +34,9 @@ class TestStatusMapping:
 class TestService:
     def test_record_transaction_created(self):
         session = MagicMock()
-        session.query.return_value.filter_by.return_value.one_or_none.return_value = None
+        session.query.return_value.filter_by.return_value.one_or_none.return_value = (
+            None
+        )
         service = TrueMoneyService(session=session)
 
         tx = service.record_transaction_created(
@@ -56,7 +58,9 @@ class TestService:
         existing.status = "pending"
         existing.last_provider_status = None
         session = MagicMock()
-        session.query.return_value.filter_by.return_value.one_or_none.return_value = existing
+        session.query.return_value.filter_by.return_value.one_or_none.return_value = (
+            existing
+        )
         service = TrueMoneyService(session=session)
 
         service.apply_provider_update(
@@ -73,7 +77,9 @@ class TestService:
         existing.status = "completed"
         existing.last_provider_status = "SUCCESS"
         session = MagicMock()
-        session.query.return_value.filter_by.return_value.one_or_none.return_value = existing
+        session.query.return_value.filter_by.return_value.one_or_none.return_value = (
+            existing
+        )
         service = TrueMoneyService(session=session)
 
         service.apply_provider_update("INV-1", {"status": "SUCCESS"})

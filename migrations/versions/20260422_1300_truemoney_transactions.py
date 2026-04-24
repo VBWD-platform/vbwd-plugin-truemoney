@@ -29,10 +29,14 @@ def upgrade() -> None:
         sa.Column("merchant_id", sa.String(length=64), nullable=False),
         sa.Column("transaction_id", sa.String(length=128), nullable=True),
         sa.Column("amount", sa.Numeric(14, 2), nullable=False),
-        sa.Column("currency", sa.String(length=3), nullable=False, server_default="THB"),
+        sa.Column(
+            "currency", sa.String(length=3), nullable=False, server_default="THB"
+        ),
         sa.Column("qr_payload", sa.String(length=512), nullable=True),
         sa.Column("deep_link", sa.String(length=512), nullable=True),
-        sa.Column("status", sa.String(length=24), nullable=False, server_default="pending"),
+        sa.Column(
+            "status", sa.String(length=24), nullable=False, server_default="pending"
+        ),
         sa.Column("last_provider_status", sa.String(length=24), nullable=True),
         sa.Column("expires_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("extra_data", sa.JSON(), nullable=True),

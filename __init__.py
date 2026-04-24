@@ -92,9 +92,7 @@ class TrueMoneyPlugin(PaymentProviderPlugin):
                 sandbox=config.get("sandbox", True),
             ),
             merchant_id=config.get(f"{prefix}merchant_id", ""),
-            api_url=config.get(
-                f"{prefix}api_url", DEFAULT_CONFIG[f"{prefix}api_url"]
-            ),
+            api_url=config.get(f"{prefix}api_url", DEFAULT_CONFIG[f"{prefix}api_url"]),
         )
 
     def create_payment_intent(

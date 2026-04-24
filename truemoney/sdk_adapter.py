@@ -115,9 +115,7 @@ class TrueMoneySDKAdapter(BaseSDKAdapter):
         }
         if amount is not None:
             body["amount"] = str(amount)
-        return self._signed_post(
-            f"/transactions/{payment_intent_id}/refund", body
-        )
+        return self._signed_post(f"/transactions/{payment_intent_id}/refund", body)
 
     def verify_webhook(self, payload: bytes, signature: str) -> bool:
         expected = self._hmac(payload)
@@ -192,9 +190,7 @@ class TrueMoneySDKAdapter(BaseSDKAdapter):
         try:
             body = resp.json()
         except ValueError:
-            return SDKResponse(
-                success=False, error="invalid JSON from TrueMoney"
-            )
+            return SDKResponse(success=False, error="invalid JSON from TrueMoney")
 
         if resp.status_code >= 400:
             return SDKResponse(
@@ -205,9 +201,7 @@ class TrueMoneySDKAdapter(BaseSDKAdapter):
         return SDKResponse(success=True, data=body)
 
     def _hmac(self, message: bytes) -> str:
-        return hmac.new(
-            self._secret_key.encode(), message, hashlib.sha256
-        ).hexdigest()
+        return hmac.new(self._secret_key.encode(), message, hashlib.sha256).hexdigest()
 
 
 def _tlv(tag: str, value: str) -> str:
