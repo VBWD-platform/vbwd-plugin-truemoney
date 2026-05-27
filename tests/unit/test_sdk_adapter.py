@@ -113,7 +113,13 @@ class TestCreateTransaction:
 
 
 class TestReleaseAuthorization:
-    def test_returns_unsupported(self, adapter):
-        resp = adapter.release_authorization("TMN-TX-1")
-        assert resp.success is False
-        assert "authorization hold" in (resp.error or "")
+    def test_raises_unsupported(self, adapter):
+        """S11 — TrueMoney doesn't support authorization holds; the adapter
+        must raise UnsupportedOperationError (not return success=False)."""
+        import pytest
+
+        from vbwd.sdk.errors import UnsupportedOperationError
+
+        with pytest.raises(UnsupportedOperationError) as excinfo:
+            adapter.release_authorization("TMN-TX-1")
+        assert "authorization hold" in str(excinfo.value)

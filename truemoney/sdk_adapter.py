@@ -11,6 +11,7 @@ from typing import Any, Dict, Optional
 import requests
 
 from vbwd.sdk.base import BaseSDKAdapter
+from vbwd.sdk.errors import UnsupportedOperationError
 from vbwd.sdk.interface import SDKConfig, SDKResponse
 
 
@@ -63,9 +64,9 @@ class TrueMoneySDKAdapter(BaseSDKAdapter):
         return self.get_transaction_status(payment_intent_id)
 
     def release_authorization(self, payment_intent_id: str) -> SDKResponse:
-        return SDKResponse(
-            success=False,
-            error="TrueMoney does not support authorization hold",
+        # S11 — Liskov: structural inability is an exception, not success=False.
+        raise UnsupportedOperationError(
+            "TrueMoney does not support authorization hold"
         )
 
     def get_payment_status(self, payment_intent_id: str) -> SDKResponse:

@@ -1,12 +1,11 @@
 """TrueMoney payment transaction model."""
-from datetime import datetime, timezone
-
 from sqlalchemy import Column, DateTime, Numeric, String
 
 from vbwd.extensions import db
+from vbwd.models.base import TzAwareTimestampMixin
 
 
-class TrueMoneyTransaction(db.Model):
+class TrueMoneyTransaction(TzAwareTimestampMixin, db.Model):
     __tablename__ = "truemoney_transactions"
 
     id = Column(
@@ -25,17 +24,7 @@ class TrueMoneyTransaction(db.Model):
     last_provider_status = Column(String(24), nullable=True)
     expires_at = Column(DateTime(timezone=True), nullable=True)
     extra_data = Column(db.JSON, nullable=True)
-    created_at = Column(
-        DateTime(timezone=True),
-        nullable=False,
-        default=lambda: datetime.now(timezone.utc),
-    )
-    updated_at = Column(
-        DateTime(timezone=True),
-        nullable=False,
-        default=lambda: datetime.now(timezone.utc),
-        onupdate=lambda: datetime.now(timezone.utc),
-    )
+    # created_at / updated_at provided by TzAwareTimestampMixin (S20).
 
     def to_dict(self) -> dict:
         return {
