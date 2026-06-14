@@ -65,9 +65,7 @@ class TrueMoneySDKAdapter(BaseSDKAdapter):
 
     def release_authorization(self, payment_intent_id: str) -> SDKResponse:
         # S11 — Liskov: structural inability is an exception, not success=False.
-        raise UnsupportedOperationError(
-            "TrueMoney does not support authorization hold"
-        )
+        raise UnsupportedOperationError("TrueMoney does not support authorization hold")
 
     def get_payment_status(self, payment_intent_id: str) -> SDKResponse:
         return self.get_transaction_status(payment_intent_id)
@@ -102,6 +100,33 @@ class TrueMoneySDKAdapter(BaseSDKAdapter):
 
     def get_transaction_status(self, transaction_id: str) -> SDKResponse:
         return self._signed_get(f"/transactions/{transaction_id}")
+
+    def create_wallet_transfer(
+        self,
+        amount: Decimal,
+        msisdn: str,
+        reference_id: str,
+    ) -> SDKResponse:
+        """Send money to a TrueMoney wallet (S79 payout).
+
+        HMAC-signed like every other call; `reference_id` carries the
+        caller's idempotency/audit reference (the withdraw request id).
+        Returns `{ transfer_id, status }`.
+        """
+        body = {
+            "merchant_id": self._merchant_id,
+            "msisdn": msisdn,
+            "amount": str(amount),
+            "currency": "THB",
+            "reference_id": reference_id,
+            "nonce": uuid.uuid4().hex,
+            "ts": int(time.time()),
+        }
+        return self._signed_post("/transfers", body)
+
+    def get_transfer_status(self, transfer_id: str) -> SDKResponse:
+        """Status lookup for a previously created wallet transfer."""
+        return self._signed_get(f"/transfers/{transfer_id}")
 
     def refund_payment(
         self,

@@ -1,5 +1,5 @@
 """TrueMoney Wallet plugin — Thailand direct-settlement QR + deep-link."""
-from typing import Optional, Dict, Any, TYPE_CHECKING
+from typing import Optional, Dict, Any, List, TYPE_CHECKING
 from decimal import Decimal
 from uuid import UUID
 
@@ -8,10 +8,39 @@ from vbwd.plugins.payment_provider import (
     PaymentProviderPlugin,
     PaymentResult,
     PaymentStatus,
+    PayoutError,
+    PayoutProvider,
+    PayoutResult,
 )
 
 if TYPE_CHECKING:
     from flask import Blueprint
+
+
+PAYOUT_DESTINATION_SCHEMA: List[Dict[str, Any]] = [
+    {
+        "name": "msisdn",
+        "type": "tel",
+        "label_key": "withdraw.destination.truemoney_msisdn",
+    }
+]
+
+PAYOUT_CURRENCY = "THB"
+
+# Wallet-transfer statuses → provider-neutral payout status (S79 D1).
+# Unknown / in-flight statuses stay "processing" (non-terminal is the
+# safe default — the withdraw plugin refreshes via get_payout_status).
+_PAYOUT_STATUS_COMPLETED = {"SUCCESS", "COMPLETED"}
+_PAYOUT_STATUS_FAILED = {"FAILED", "CANCELLED", "EXPIRED", "REJECTED"}
+
+
+def _map_transfer_status(transfer_status: str) -> str:
+    normalized = transfer_status.upper()
+    if normalized in _PAYOUT_STATUS_COMPLETED:
+        return "completed"
+    if normalized in _PAYOUT_STATUS_FAILED:
+        return "failed"
+    return "processing"
 
 
 DEFAULT_CONFIG = {
@@ -27,8 +56,10 @@ DEFAULT_CONFIG = {
 }
 
 
-class TrueMoneyPlugin(PaymentProviderPlugin):
-    """TrueMoney Wallet direct — THB-only, QR + deep-link.
+class TrueMoneyPlugin(PaymentProviderPlugin, PayoutProvider):
+    """TrueMoney Wallet direct — THB-only, QR + deep-link; payout via
+    HMAC-signed wallet transfer to an msisdn (S79 `PayoutProvider`
+    capability).
 
     Class MUST live in __init__.py (not re-exported) per plugin-discovery
     rule.
@@ -183,6 +214,45 @@ class TrueMoneyPlugin(PaymentProviderPlugin):
             transaction_id=transaction_id,
             status=PaymentStatus.REFUNDED,
         )
+
+    def get_payout_destination_schema(self) -> List[Dict[str, Any]]:
+        return PAYOUT_DESTINATION_SCHEMA
+
+    def create_payout(
+        self,
+        amount: Decimal,
+        currency: str,
+        destination: Dict[str, Any],
+        reference_id: str,
+    ) -> PayoutResult:
+        if currency.upper() != PAYOUT_CURRENCY:
+            raise PayoutError(
+                f"TrueMoney payouts support {PAYOUT_CURRENCY} only, got {currency}"
+            )
+        receiver_msisdn = str(destination.get("msisdn", "")).strip()
+        if not receiver_msisdn:
+            raise PayoutError("TrueMoney payout requires a destination msisdn")
+        adapter = self._get_adapter()
+        response = adapter.create_wallet_transfer(
+            amount=amount,
+            msisdn=receiver_msisdn,
+            reference_id=reference_id,
+        )
+        if not response.success:
+            raise PayoutError(f"TrueMoney payout failed: {response.error}")
+        return PayoutResult(
+            provider_payout_id=response.data.get("transfer_id", ""),
+            status=_map_transfer_status(response.data.get("status", "")),
+        )
+
+    def get_payout_status(self, provider_payout_id: str) -> str:
+        adapter = self._get_adapter()
+        response = adapter.get_transfer_status(provider_payout_id)
+        if not response.success:
+            raise PayoutError(
+                f"TrueMoney payout status lookup failed: {response.error}"
+            )
+        return _map_transfer_status(response.data.get("status", ""))
 
     def verify_webhook(self, payload: bytes, signature: str) -> bool:
         adapter = self._get_adapter()
