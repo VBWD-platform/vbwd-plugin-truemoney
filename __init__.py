@@ -69,7 +69,7 @@ class TrueMoneyPlugin(PaymentProviderPlugin, PayoutProvider):
     def metadata(self) -> PluginMetadata:
         return PluginMetadata(
             name="truemoney",
-            version="26.6",
+            version="26.6.1",
             author="VBWD Team",
             description=(
                 "TrueMoney Wallet (Thailand) — direct-settlement QR + "
