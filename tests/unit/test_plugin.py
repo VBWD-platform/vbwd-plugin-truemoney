@@ -12,7 +12,7 @@ class TestTrueMoneyPlugin:
     def test_metadata(self):
         plugin = TrueMoneyPlugin()
         assert plugin.metadata.name == "truemoney"
-        assert plugin.metadata.version == "26.6"
+        assert plugin.metadata.version == "26.6.1"
 
     def test_initialize_merges(self):
         plugin = TrueMoneyPlugin()
