@@ -3,7 +3,7 @@ from typing import Optional, Dict, Any, List, TYPE_CHECKING
 from decimal import Decimal
 from uuid import UUID
 
-from vbwd.plugins.base import PluginMetadata
+from vbwd.plugins.base import PluginMetadata, PublicRouteDeclaration
 from vbwd.plugins.payment_provider import (
     PaymentProviderPlugin,
     PaymentResult,
@@ -84,6 +84,14 @@ class TrueMoneyPlugin(PaymentProviderPlugin, PayoutProvider):
         if config:
             merged.update(config)
         super().initialize(merged)
+
+    def declare_public_routes(self) -> PublicRouteDeclaration:
+        """Public TrueMoney provider webhook (verified by provider signature)."""
+        return PublicRouteDeclaration(
+            mutation={
+                "/api/v1/plugins/truemoney/webhooks": "TrueMoney webhook; verified by provider signature in-handler.",
+            },
+        )
 
     def get_blueprint(self) -> Optional["Blueprint"]:
         from plugins.truemoney.truemoney.routes import truemoney_plugin_bp
